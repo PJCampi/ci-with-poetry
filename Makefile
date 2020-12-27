@@ -7,7 +7,7 @@ publish: export REPOSITORY_USERNAME ?= $$USER
 publish: export REPOSITORY_PASSWORD ?=
 publish: export REPOSITORY ?=
 
-all: publish
+all: publish finally
 
 clean:
 	@./scripts/release/clean.sh
@@ -23,3 +23,6 @@ test: prepare
 
 publish: version test
 	@./scripts/release/publish.sh
+
+finally: prepare
+	@./scripts/release/finally.sh
