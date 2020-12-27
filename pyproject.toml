@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "ci_with_poetry"
+version = "v0.0.0"
+description = "\" Example of Continuous Integration with poetry\""
+authors = ["Pierre-Jean Campigotto <pierrejean.campigotto@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+poetry-semver = "^0.1.0"
+pytest = "^6.2.1"
+mypy = "^0.790"
+flake8 = "^3.8.4"
+black = "19.10b0"
+toml = "^0.10.2"
+
+[tool.black]
+line-length = 120
+
+[build-system]
+requires = ["poetry>=1.1"]
+build-backend = "poetry.masonry.api"
