@@ -7,7 +7,8 @@ publish: export REPOSITORY_USERNAME ?= $$USER
 publish: export REPOSITORY_PASSWORD ?=
 publish: export REPOSITORY ?=
 
-all: publish finally
+all:
+	$(MAKE) publish finally || $(MAKE) finally
 
 clean:
 	@./scripts/release/clean.sh
@@ -24,5 +25,5 @@ test: prepare
 publish: version test
 	@./scripts/release/publish.sh
 
-finally: prepare
+finally:
 	@./scripts/release/finally.sh

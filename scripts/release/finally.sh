@@ -1,3 +1,6 @@
 #!/usr/bin/env bash
+echo cleaning up build directories
 "$(dirname "$0")"/clean.sh
-"$(dirname "$0")"/add_version.sh "0.0.0"
+
+echo reset all changes made to the repository
+git reset --hard HEAD
