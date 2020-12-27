@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION_PATTERN="*[0-9]*.[0-9]*.[0-9]*"
+VERSION_PATTERN="v[0-9]*.[0-9]*.[0-9]*"
 MAX_CANDIDATE_TAGS=25
 
 HASHES=${1:-"$(git log --simplify-by-decoration --format=format:%h --max-count=$MAX_CANDIDATE_TAGS)"}
