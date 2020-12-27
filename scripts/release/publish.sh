@@ -12,8 +12,9 @@ CURRENT_TAG=$("$(dirname "$0")"/get_version_tag.sh $COMMIT_HASH)
 if [[ "$CURRENT_TAG" != "" ]]
 then
 
-  echo adding version: $CURRENT_TAG to package
-  "$(dirname "$0")"/add_version.sh $CURRENT_TAG
+  CURRENT_VERSION=${CURRENT_TAG:1}
+  echo adding version: $CURRENT_VERSION to package
+  "$(dirname "$0")"/add_version.sh $CURRENT_VERSION
 
   echo build package
   poetry build --format wheel
