@@ -24,7 +24,7 @@ LATEST_TAG=$("$(dirname "$0")"/get_version_tag.sh "")
 echo the highest version tag is: $LATEST_TAG
 
 # determine the inferred version
-INFERRED_VERSION=$(poetry run python "$(dirname "$0")"/infer_version_tag.py $CURRENT_BRANCH $COMMIT_HASH $CURRENT_TAG $LATEST_TAG)
+INFERRED_VERSION=$(poetry run python "$(dirname "$0")"/version.py infer $CURRENT_BRANCH $COMMIT_HASH $CURRENT_TAG $LATEST_TAG)
 echo the inferred version is: $INFERRED_VERSION
 
 # tag the repository with the inferred version
@@ -33,10 +33,7 @@ echo COMMIT_TAG was resolved to $COMMIT_TAG
 
 if [[ $INFERRED_VERSION != "" ]] && [[ $INFERRED_VERSION != $CURRENT_TAG ]] && [[ $COMMIT_TAG == "true" ]]
 then
-  COMMIT_MESSAGE="tagging commit: $COMMIT_HASH with version: $INFERRED_VERSION"
-  echo "$COMMIT_MESSAGE"
-  git tag -a $INFERRED_VERSION -m "$COMMIT_MESSAGE"
-  git push -f origin refs/tags/$INFERRED_VERSION
+  "$(dirname "$0")"/add_version_tag.sh $INFERRED_VERSION $COMMIT_HASH
 else
   echo "commit: $COMMIT_HASH is already tagged with version: $INFERRED_VERSION or COMMIT_TAG was resolved to false."
 fi

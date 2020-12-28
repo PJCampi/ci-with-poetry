@@ -7,7 +7,7 @@ from semver import Version
 from semver.exceptions import ParseVersionError
 from toml import load
 
-from scripts.release.infer_version_tag import infer_version
+from scripts.release.version import infer_version
 
 PROJECT_PATH = Path(__file__).parent.parent
 PACKAGE_NAME = load(PROJECT_PATH / "pyproject.toml")["tool"]["poetry"]["name"]

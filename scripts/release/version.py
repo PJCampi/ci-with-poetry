@@ -1,11 +1,12 @@
 from argparse import ArgumentParser
+from contextlib import suppress
 import re
-from typing import Optional
+from typing import Iterable, Optional
 
 from semver import Version
 from semver.exceptions import ParseVersionError
 
-__all__ = ["infer_version", "format_version_tag", "parse_version_tag"]
+__all__ = ["infer_version", "get_latest_version_tag"]
 
 VERSION_PATTERN, HASH_PATTERN = "{stable}-{pre_post}{n}{build_hash}", "+{short_hash}"
 DEVELOP_BRANCH, ALPHA = "develop", "alpha"
@@ -15,6 +16,7 @@ MASTER_BRANCH = "master"
 HOTFIX_BRANCH, POST = "hotfix", "post"
 
 
+# region public API
 def infer_version(
     branch_name: str, commit_hash: str, highest_version_tag: str, commit_version_tag: str
 ) -> Optional[Version]:
@@ -120,7 +122,7 @@ def infer_version(
                 return latest_version
             build = int(latest_version.build[0])
             stable_version = Version(latest_version.major, latest_version.minor, latest_version.patch)
-            version_str = VERSION_PATTERN.format(stable=stable_version, pre_post=POST, n=build+1, build_hash="")
+            version_str = VERSION_PATTERN.format(stable=stable_version, pre_post=POST, n=build + 1, build_hash="")
         elif _is_stable_version(latest_version):
             version_str = VERSION_PATTERN.format(stable=latest_version, pre_post=POST, n=1, build_hash="")
         else:
@@ -136,18 +138,72 @@ def infer_version(
         return None
 
 
-def format_version_tag(version_str: str) -> str:
-    if not version_str:
-        return version_str
-    return f"v{version_str}"
+def get_latest_version(tags: Iterable[str]) -> Optional[Version]:
+    max_version: Optional[Version] = None
+    for tag in tags:
+        with suppress(ParseVersionError):
+            version = Version.parse(tag)
+            if max_version:
+                if version >= max_version:
+                    max_version = version
+            else:
+                max_version = version
+    return max_version
 
 
-def parse_version_tag(version_tag: str) -> str:
-    if not version_tag:
-        return version_tag
-    return version_tag.lstrip("v")
+# endregion
+
+# region CLI
+def _format_version(version: Optional[Version]) -> str:
+    return f"v{version.text}" if version else ""
 
 
+def _parse_version_tag(version_tag: str) -> str:
+    return version_tag.lstrip("v") if version_tag else version_tag
+
+
+cli_parser = ArgumentParser(usage="Utility tools for versioning application. Versions follow semantic versioning.")
+subparsers = cli_parser.add_subparsers()
+
+infer_parser = subparsers.add_parser("infer", usage="Infers the version of the package.")
+infer_parser.add_argument("branch_name", help="The name of the branch of the current commit.")
+infer_parser.add_argument("commit_hash", help="The short hash of the current commit.")
+infer_parser.add_argument(
+    "highest_version_tag",
+    nargs="?",
+    help="The highest version tag accessible from the current commit.",
+    default="",
+    type=_parse_version_tag,
+)
+infer_parser.add_argument(
+    "commit_version_tag",
+    nargs="?",
+    help="The highest version tag of the current commit if any.",
+    default="",
+    type=_parse_version_tag,
+)
+infer_parser.set_defaults(
+    func=lambda a: print(
+        _format_version(infer_version(a.branch_name, a.commit_hash, a.highest_version_tag, a.commit_version_tag))
+    )
+)
+
+highest_version_parser = subparsers.add_parser(
+    "latest", usage="Returns the highest version tag from a comma delimited list of tags."
+)
+highest_version_parser.add_argument(
+    "tags",
+    help="A list of git version tags.",
+    nargs="?",
+    default=[],
+    type=lambda s: list(map(_parse_version_tag, s.split(","))) if s else [],
+)
+highest_version_parser.set_defaults(func=lambda a: print(_format_version(get_latest_version(a.tags))))
+
+
+# endregion
+
+# region private methods
 def _is_alpha_pre_release(version: Version) -> bool:
     return version.is_prerelease() and version.prerelease[0] == ALPHA
 
@@ -164,28 +220,8 @@ def _is_post_version(version: Version) -> bool:
     return POST in version.text
 
 
-argument_parser = ArgumentParser("Infers the version of the package.")
-argument_parser.add_argument("branch_name", help="The name of the branch of the current commit.")
-argument_parser.add_argument("commit_hash", help="The short hash of the current commit.")
-argument_parser.add_argument(
-    "highest_version_tag",
-    nargs="?",
-    help="The highest version tag accessible from the current commit.",
-    default="",
-    type=parse_version_tag
-)
-argument_parser.add_argument(
-    "commit_version_tag",
-    nargs="?",
-    help="The highest version tag of the current commit if any.",
-    default="",
-    type=parse_version_tag
-)
-
+# endregion
 
 if __name__ == "__main__":
-    args = argument_parser.parse_args()
-    inferred_version = infer_version(
-        args.branch_name, args.commit_hash, args.highest_version_tag, args.commit_version_tag
-    )
-    print(format_version_tag(inferred_version.text) if inferred_version else "")
+    args = cli_parser.parse_args()
+    args.func(args)
