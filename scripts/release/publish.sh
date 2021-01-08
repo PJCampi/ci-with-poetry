@@ -9,19 +9,22 @@ PUBLISH=${PUBLISH:-"false"}
 cd "$(dirname "$0")"
 
 # get current version
-if [[ "$DISALLOW_LOCAL_VERSIONS" == "true" ]]
-then
-  CURRENT_VERSION=$("${PYTHON:=python}" -m version get --include-alpha)
-else
-  CURRENT_VERSION=$("${PYTHON:=python}" -m version get)
-fi
+CURRENT_VERSION=$("${PYTHON:=python}" -m version get --include-alpha)
 
 # build and publish if a version is available
 if [[ "$CURRENT_VERSION" != "" ]]
 then
+  ./build.sh $CURRENT_VERSION
+fi
 
-  "$(dirname "$0")"build.sh $CURRENT_VERSION
+# publish the package if the version is available
+if [[ "$DISALLOW_LOCAL_VERSIONS" == "true" ]]
+then
+  CURRENT_VERSION=$("${PYTHON:=python}" -m version get)
+fi
 
+if [[ "$CURRENT_VERSION" != "" ]]
+then
   echo publish package "$(if [[ "$PUBLISH" != "true" ]]; then echo "in dry-run mode"; fi)"
   PUBLISH_ARGS=" --username $REPOSITORY_USERNAME --password $REPOSITORY_PASSWORD"
   if [[ "$REPOSITORY" != "" ]]; then PUBLISH_ARGS+=" --repository $REPOSITORY"; fi

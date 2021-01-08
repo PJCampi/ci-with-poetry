@@ -43,6 +43,7 @@ def add_version_to_project(version: Version) -> None:
 def _add_version_to_package_version_file(version_file_path: Path, version: Version) -> None:
     version_file_content = version_file_path.read_text()
     content_replaced = VERSION_PATTERN.sub(
-        VERSION_PATTERN_STRING_FORMAT.format(pattern=version.text), version_file_content
+        lambda m: f"{m.groups()[0]}{VERSION_PATTERN_STRING_FORMAT.format(pattern=version.text)}{m.groups()[-1]}",
+        version_file_content
     )
     version_file_path.write_text(content_replaced)
