@@ -14,6 +14,7 @@ mypy = "^0.790"
 flake8 = "^3.8.4"
 black = "19.10b0"
 toml = "^0.10.2"
+pytest-git = "^1.7.0"
 
 [tool.black]
 line-length = 120

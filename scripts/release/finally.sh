@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
 echo cleaning up build directories
-"$(dirname "$0")"/clean.sh
+./clean.sh
 
 echo reset version to 0.0.0
-"$(dirname "$0")"/add_version.sh "0.0.0"
+"${PYTHON:=python}" -m version add "0.0.0"
